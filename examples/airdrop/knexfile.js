@@ -3,7 +3,7 @@
 /**
  * @type { Object.<string, import("knex").Knex.Config> }
  */
-require("dotenv").config({ path: ".env.local" });
+require("dotenv").config({ path: ".env" });
 
 module.exports = {
   development: {

@@ -20,7 +20,8 @@ const { chains, provider } = configureChains(
   [alchemyProvider({ apiKey: process.env.ALCHEMY_ID }), publicProvider()]
 );
 const { connectors } = getDefaultWallets({
-  appName: "Airdrop",
+  appName: "ggxfaucet",
+  projectId: "db1413f30bef7a5135e4488e855e541a",
   chains,
 });
 const wagmiClient = createClient({

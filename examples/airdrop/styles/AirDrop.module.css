@@ -25,3 +25,10 @@
   font-weight: bold;
   border-radius: 10px;
 }
+
+.input {
+  width: 200px;
+  height: 40px;
+  padding-right: 100px;
+  margin-right: 10px;
+}
