@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { verifyMessage } from "ethers/lib/utils";
@@ -7,8 +8,6 @@ import { Keyring } from '@polkadot/api';
 import { ApiPromise, WsProvider } from '@polkadot/api';
 
 export default function AirDrop() {
-  
-
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -210,33 +209,17 @@ export default function AirDrop() {
         // Create a keyring instance
         const keyring = new Keyring({ type: 'sr25519' });
 
-        console.log("@@@faucet", process.env.MNEMONIC);
-
-        console.log("@@@address", input);
+        // console.log("@@@faucet MNEMONIC", process.env.NEXT_PUBLIC_MNEMONIC, process.env.NEXT_PUBLIC_FAUCET_AMOUNT, process.env.NEXT_PUBLIC_SCORER_ID, process.env.SCORER_API_KEY, process.env.ALCHEMY_ID,  process.env.POSTGRES_HOST);
+        // console.log("@@@input env JSON", JSON.stringify(process.env));
+        // console.log("@@@input env", process.env)
+        // console.log("@@@input box address", input);
 
         // Create alice (carry-over from the keyring section)
-        const faucetAccount = keyring.addFromUri("august strong easily winner elder pass rhythm caught crawl fold bag unaware");  // todo: init with .env private key
-
-        const receive = "qHUXxGJ3vVec4pZ6uaXdBgm3modwgxHAEEDtzQ6gjqD6ztec8"; //todo: get from input box
-
-        const amount = 100;
-
-        // Make a transfer from Alice to BOB, waiting for inclusion
-        // const unsub = await api.tx.balances
-        //   .transfer(BOB, 100/*process.env.FAUCET_AMOUNT*/)
-        //   .signAndSend(faucetAccount, (result) => {
-        //     console.log(`@@@Current status is ${result.status}`);
-
-        //     if (result.status.isInBlock) {
-        //       console.log(`@@@Transaction included at blockHash ${result.status.asInBlock}`);
-        //     } else if (result.status.isFinalized) {
-        //       console.log(`@@@Transaction finalized at blockHash ${result.status.asFinalized}`);
-        //       unsub();
-        //     }
-        //   });
+        const faucetAccount = keyring.addFromUri(process.env.NEXT_PUBLIC_MNEMONIC);
+        const receive = input;
+        const amount = process.env.NEXT_PUBLIC_FAUCET_AMOUNT;
 
         console.log("@@@ check params", { pass_port_address: address,  receive_address: receive, receive_amount: amount});
-        // todo check rate limit 
         try {
           const resp = await axios.post("/api/faucet/check", { pass_port_address: address,  receive_address: receive, receive_amount: amount});
           if (resp.status === 200) {
@@ -247,6 +230,7 @@ export default function AirDrop() {
           }
         } catch (e) {
           console.error(e);
+          return;
         }
 
         const txHash = await api.tx.balances
@@ -255,7 +239,6 @@ export default function AirDrop() {
 
         // Show the hash
         console.log(`@@@Submitted with hash ${txHash}`);
-
         console.log("Your token has been sent.");
 
         try {
@@ -288,7 +271,7 @@ export default function AirDrop() {
   const [nonce, setNonce] = useState("");
   const [passportScore, setPassportScore] = useState(0);
   const [checked, setChecked] = useState(false);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState('qHUXxGJ3vVec4pZ6uaXdBgm3modwgxHAEEDtzQ6gjqD6ztec8');
 
   function display() {
     if (isMounted && address) {

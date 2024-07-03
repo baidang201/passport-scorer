@@ -27,27 +27,6 @@ export default async function handler(req, res) {
     return;
   }
 
-  //todo check limit
-
-
-  // const rows = await db("faucet")
-  //   .insert({ 
-  //     pass_port_address: pass_port_address, 
-  //     receive_address: receive_address,
-  //     receive_time: receive_time,
-  //     receive_amount: receive_amount,
-  //   })
-  //   .returning("*");
-
-  // res.status(200).json({
-  //   successful: true,
-  //   added: { id: rows[0].id, 
-  //     pass_port_address: pass_port_address, 
-  //     receive_address: receive_address,
-  //     receive_time: receive_time,
-  //     receive_amount: receive_amount, },
-  // });
-
   let today_0_hour = new Date(); // take the current time
   today_0_hour.setHours(0);
   today_0_hour.setMinutes(0);
@@ -59,25 +38,23 @@ export default async function handler(req, res) {
   let startDate = moment(today_0_hour).format('YYYY-MM-DDTHH:mm:ssZ');
   let endDate = moment(tomorrow_0_hour).format('YYYY-MM-DDTHH:mm:ssZ');
 
-  console.log("@@@ datatime: ", today_0_hour, tomorrow_0_hour);
-
-  let limit = 100;
+  let limit = parseInt(process.env.FAUCET_AMOUNT_LIMIT_PER_ADDRESS);
   var sum_faucet_infos_by_pass_port_address = await db("faucet").whereBetween('receive_time', [startDate, endDate]).andWhere({ pass_port_address: pass_port_address }).sum('receive_amount');
-  console.log("@@@sum_faucet_infos_by_pass_port_address", sum_faucet_infos_by_pass_port_address, sum_faucet_infos_by_pass_port_address + receive_amount, sum_faucet_infos_by_pass_port_address[0]['sum(`receive_amount`)']);
-  if (sum_faucet_infos_by_pass_port_address[0]['sum(`receive_amount`)'] + receive_amount > limit) {
+  let new_sum_pass_port_address_with_amount = parseInt(sum_faucet_infos_by_pass_port_address[0]['sum(`receive_amount`)']) + parseInt(receive_amount);
+  if ( new_sum_pass_port_address_with_amount > limit) {
     res
     .status(400)
-    .json({ success: false, message: limit + " reach limit per gitcoin pass_port address " });
+    .json({ success: false, message: new_sum_pass_port_address_with_amount + " reach limit per gitcoin pass_port address " + limit });
     
     return;
   }
 
   var sum_faucet_infos_by_receive_address = await db("faucet").whereBetween('receive_time', [startDate, endDate]).andWhere({ receive_address: receive_address }).sum('receive_amount');
-  console.log("@@@sum_faucet_infos_by_receive_address", sum_faucet_infos_by_receive_address, sum_faucet_infos_by_receive_address + receive_amount, sum_faucet_infos_by_receive_address[0]['sum(`receive_amount`)']);
-  if (sum_faucet_infos_by_receive_address[0]['sum(`receive_amount`)'] + receive_amount > limit) {
+  let new_sum_receive_address_with_amount = parseInt(sum_faucet_infos_by_receive_address[0]['sum(`receive_amount`)']) + parseInt(receive_amount);
+  if ( new_sum_receive_address_with_amount > limit) {
     res
     .status(400)
-    .json({ success: false, message: limit + "reach limit per receive address" });
+    .json({ success: false, message: new_sum_receive_address_with_amount + " reach limit per receive address" + limit });
     
     return;
   }
