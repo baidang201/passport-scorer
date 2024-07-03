@@ -80,69 +80,6 @@ export default function AirDrop() {
     signMessage({ message: scorerMessageResponse.data.message });
   }
 
-  // const { signMessage } = useSignMessage({
-  //   async onSuccess(data, variables) {
-  //     // Verify signature when sign message succeeds
-  //     const address = verifyMessage(variables.message, data);
-
-  //     //  Step #3
-  //     //    Now that we have the signature from the user, we can submit their passport for scoring
-  //     //    We call our /api/submit-passport endpoint (/pages/api/submit-passport.js) which
-  //     //    internally calls /registry/submit-passport on the scorer API.
-  //     //    This will return a response like:
-  //     //    {
-  //     //      address: "0xabc",
-  //     //      error: null,
-  //     //      evidence: null,
-  //     //      last_score_timestamp: "2023-03-26T15:17:03.393567+00:00",
-  //     //      score: null,
-  //     //      status: "PROCESSING"
-  //     //    }
-  //     const submitResponse = await axios.post("/api/submit-passport", {
-  //       address: address, // Required: The user's address you'd like to score.
-  //       community: process.env.NEXT_PUBLIC_SCORER_ID, // Required: get this from one of your scorers in the Scorer API dashboard https://scorer.gitcoin.co/
-  //       signature: data, // Optional: The signature of the message returned in Step #1
-  //       nonce: nonce, // Optional: The nonce returned in Step #1
-  //     });
-
-  //     //  Step #4
-  //     //    Finally, we can attempt to add the user to the airdrop list.
-  //     //    We call our /api/airdrop/{scorer_id}/{address} endpoint (/pages/api/airdrop/[scorer_id]/[address].js) which internally calls
-  //     //    /registry/score/{scorer_id}/{address}
-  //     //    This will return a response like:
-  //     //    {
-  //     //      address: "0xabc",
-  //     //      error: null,
-  //     //      evidence: null,
-  //     //      last_score_timestamp: "2023-03-26T15:17:03.393567+00:00",
-  //     //      score: "1.574606692",
-  //     //      status: ""DONE""
-  //     //    }
-  //     //    We check if the returned score is above our threshold to qualify for the airdrop.
-  //     //    If the score is above our threshold, we add the user to the airdrop list.
-  //     const scoreResponse = await axios.get(
-  //       `/api/airdrop/add/${process.env.NEXT_PUBLIC_SCORER_ID}/${address}`
-  //     );
-
-  //     // Make sure to check the status
-  //     if (scoreResponse.data.status === "ERROR") {
-  //       setPassportScore(0);
-  //       alert(scoreResponse.data.error);
-  //       return;
-  //     }
-
-  //     // Store the user's passport score for later use.
-  //     setPassportScore(scoreResponse.data.score);
-  //     setChecked(true);
-
-  //     if (scoreResponse.data.score < 1) {
-  //       alert("Sorry, you're not eligible for the airdrop.");
-  //     } else {
-  //       alert("You're eligible for the airdrop! Your address has been added.");
-  //     }
-  //   },
-  // });
-
   const { signMessage } = useSignMessage({
     async onSuccess(data, variables) {
       // Verify signature when sign message succeeds
@@ -203,16 +140,11 @@ export default function AirDrop() {
       } else {
 
         // Construct
-        const wsProvider = new WsProvider('wss://brooklyn-archive.ggxchain.net/dev-brooklyn');
+        const wsProvider = new WsProvider(process.env.NEXT_PUBLIC_GGX_WS_URL);
         const api = await ApiPromise.create({ provider: wsProvider });
 
         // Create a keyring instance
         const keyring = new Keyring({ type: 'sr25519' });
-
-        // console.log("@@@faucet MNEMONIC", process.env.NEXT_PUBLIC_MNEMONIC, process.env.NEXT_PUBLIC_FAUCET_AMOUNT, process.env.NEXT_PUBLIC_SCORER_ID, process.env.SCORER_API_KEY, process.env.ALCHEMY_ID,  process.env.POSTGRES_HOST);
-        // console.log("@@@input env JSON", JSON.stringify(process.env));
-        // console.log("@@@input env", process.env)
-        // console.log("@@@input box address", input);
 
         // Create alice (carry-over from the keyring section)
         const faucetAccount = keyring.addFromUri(process.env.NEXT_PUBLIC_MNEMONIC);
@@ -240,6 +172,7 @@ export default function AirDrop() {
         // Show the hash
         console.log(`@@@Submitted with hash ${txHash}`);
         console.log("Your token has been sent.");
+        setTxHash(txHash);
 
         try {
           let datatime = new Date();
@@ -253,7 +186,6 @@ export default function AirDrop() {
         } catch (e) {
           console.error(e);
         }
-
 
       }
     },
@@ -272,6 +204,7 @@ export default function AirDrop() {
   const [passportScore, setPassportScore] = useState(0);
   const [checked, setChecked] = useState(false);
   const [input, setInput] = useState('qHUXxGJ3vVec4pZ6uaXdBgm3modwgxHAEEDtzQ6gjqD6ztec8');
+  const [txHash, setTxHash] = useState('');
 
   function display() {
     if (isMounted && address) {
@@ -305,8 +238,14 @@ export default function AirDrop() {
         } else {
           return (
             <div>
-              <p className={styles.p}>You&apos;ve been get the token!</p>
+            <div>
+            <input className={styles.input} placeholder="Your ggx address" value={input} onInput={e => setInput(e.target.value)}></input>
+            <button className={styles.btn} onClick={() => sendToken(address)}>
+              get ggx
+            </button>
             </div>
+            <div>tx:  <a href={ process.env.NEXT_PUBLIC_GGX_EXPLORER_URL + txHash}>{txHash}</a></div>
+          </div>
           );
         }
       } else {
@@ -318,21 +257,15 @@ export default function AirDrop() {
               get ggx
             </button>
             </div>
-
-            <div>
-            <button className={styles.btn} onClick={() => addToAirdrop(address)}>
-              Add address to airdrop
-            </button>
-            </div>
+            <div>tx:  <a href={ process.env.NEXT_PUBLIC_GGX_EXPLORER_URL + txHash}>{txHash}</a></div>
           </div>
-
         );
       }
     } else {
       return (
         <p className={styles.p}>
           Connect your wallet to find out if you&apos;re eligible for the
-          airdrop.
+          faucet.
         </p>
       );
     }
