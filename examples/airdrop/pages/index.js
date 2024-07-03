@@ -47,12 +47,12 @@ export default function Home() {
                 src={
                   theme
                     ? `data:image/png;base64,${theme.image}`
-                    : "/gitcoinWordLogo.svg"
+                    : "/ggx.png"
                 }
-                alt="Gitcoin Logo"
+                alt="GGX Logo"
                 className={theme ? "" : styles.gitcoinLogo}
-                width={150}
-                height={34}
+                width={100}
+                height={100}
                 priority
               />
             </a>

@@ -128,11 +128,11 @@ export default function Dashboard({ data }) {
               rel="noopener noreferrer"
             >
               <Image
-                src="/gitcoinWordLogo.svg"
-                alt="Gitcoin Logo"
+                src="/ggx.png"
+                alt="GGX Logo"
                 className={styles.gitcoinLogo}
-                width={150}
-                height={34}
+                width={100}
+                height={100}
                 priority
               />
             </a>
